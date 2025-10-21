@@ -1,10 +1,15 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 // MySQL connection pool
 const pool = mysql.createPool({
@@ -432,6 +437,65 @@ app.put('/api/orders/:id/status', async (req, res) => {
     }
     
     res.status(500).json({ msg: 'Failed to update order status', error: err.message });
+  }
+});
+
+// Chatbot endpoint for medicine-related queries
+app.post('/api/chatbot', async (req, res) => {
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  try {
+    // Get current medicines from database or mock
+    let medicinesList = [];
+    try {
+      const [rows] = await pool.query('SELECT name, category, price, dosage, manufacturer, description FROM medicines');
+      medicinesList = rows;
+    } catch (err) {
+      medicinesList = mockMedicines;
+    }
+
+    // Create medicine context
+    const medicinesContext = medicinesList.map(m => 
+      `${m.name} - Category: ${m.category}, Price: ₹${m.price}, Dosage: ${m.dosage}, Manufacturer: ${m.manufacturer}`
+    ).join('\n');
+
+    // Create prompt for Gemini
+    const prompt = `You are a helpful pharmacy assistant chatbot for Care Pharmacy. You can only answer questions about medicines, their prices, dosages, and general health advice.
+
+Available medicines in our pharmacy:
+${medicinesContext}
+
+Rules:
+1. Only answer medicine-related questions (prices, availability, dosage, side effects, alternatives, etc.)
+2. If asked about non-medicine topics, politely redirect to medicine queries
+3. Be helpful, professional, and concise
+4. Use the medicine list above for accurate pricing
+5. If a medicine is not in our list, suggest similar alternatives from the list
+6. Always remind users to consult a doctor for medical conditions
+
+User question: ${message}
+
+Provide a helpful response:`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const botReply = response.text();
+
+    res.json({ 
+      reply: botReply,
+      success: true
+    });
+
+  } catch (error) {
+    console.error('Chatbot error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate response',
+      reply: 'Sorry, I am having trouble processing your request. Please try again.'
+    });
   }
 });
 

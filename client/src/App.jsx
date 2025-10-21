@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, ShoppingCart, Plus, Minus, X, CheckCircle, CreditCard, MapPin, Truck, Star, User, Menu, Package, Clock, XCircle, RotateCcw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, ShoppingCart, Plus, Minus, X, CheckCircle, CreditCard, MapPin, Truck, Star, User, Menu, Package, Clock, XCircle, RotateCcw, CheckCircle2, AlertCircle, ChevronRight, MessageCircle, Send } from 'lucide-react';
 
 // --- TYPE DEFINITIONS (Removed for JSX) ---
 
@@ -829,6 +829,119 @@ const MyOrdersModal = ({ isOpen, onClose, orders, loading, onCancelOrder, onOrde
   );
 };
 
+// --- CHATBOT COMPONENT ---
+const Chatbot = ({ isOpen, onClose, messages, onSendMessage, input, setInput, isLoading, chatEndRef }) => {
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Floating chat button */}
+      {!isOpen && (
+        <button
+          onClick={onClose}
+          className="fixed bottom-6 right-6 bg-accent-primary hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl z-50 transition-all duration-200 hover:scale-110"
+          aria-label="Open chat"
+        >
+          <MessageCircle size={24} />
+        </button>
+      )}
+
+      {/* Chat window */}
+      <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-bg-secondary glass rounded-lg shadow-2xl z-50 flex flex-col border border-border-color modal-enter">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border-color bg-gradient-to-r from-accent-primary to-blue-700">
+          <div className="flex items-center space-x-2">
+            <MessageCircle size={24} className="text-white" />
+            <div>
+              <h3 className="font-bold text-white">Medicine Assistant</h3>
+              <p className="text-xs text-blue-100">Ask about medicines & prices</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-white hover:bg-opacity-20 rounded transition-colors"
+          >
+            <X size={20} className="text-white" />
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.length === 0 ? (
+            <div className="text-center text-text-secondary mt-20">
+              <MessageCircle size={48} className="mx-auto mb-4 text-accent-primary" />
+              <p className="font-semibold text-text-primary mb-2">Welcome to Care Pharmacy!</p>
+              <p className="text-sm">Ask me about medicine prices, dosages, or health advice.</p>
+              <div className="mt-4 space-y-2 text-xs">
+                <p className="text-left">Try asking:</p>
+                <p className="text-left text-accent-primary">• "What is the price of Dolo 650?"</p>
+                <p className="text-left text-accent-primary">• "Do you have antibiotics?"</p>
+                <p className="text-left text-accent-primary">• "Suggest medicine for fever"</p>
+              </div>
+            </div>
+          ) : (
+            messages.map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] p-3 rounded-lg ${
+                    msg.role === 'user'
+                      ? 'bg-accent-primary text-white'
+                      : 'bg-bg-tertiary text-text-primary border border-border-color'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                </div>
+              </div>
+            ))
+          )}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-bg-tertiary p-3 rounded-lg border border-border-color">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-border-color">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSendMessage();
+            }}
+            className="flex space-x-2"
+          >
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about medicines..."
+              className="flex-1 px-4 py-2 bg-bg-tertiary border border-border-color rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              disabled={isLoading}
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="bg-accent-primary hover:bg-blue-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Send size={20} />
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
+};
+
 // --- MAIN APP COMPONENT ---
 export default function AlchemicalPharmacyUI() {
   const [medicines, setMedicines] = useState(mockMedicines);
@@ -850,6 +963,13 @@ export default function AlchemicalPharmacyUI() {
   const [customerEmail, setCustomerEmail] = useState(localStorage.getItem('customerEmail') || '');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  
+  // Chatbot state
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
   // Load medicines from backend with graceful fallback to mock data
   useEffect(() => {
@@ -1022,6 +1142,47 @@ export default function AlchemicalPharmacyUI() {
       alert('Failed to cancel order');
     }
   };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    
+    // Add user message
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsChatLoading(true);
+
+    try {
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage })
+      });
+
+      const data = await response.json();
+      
+      // Add bot response
+      setChatMessages(prev => [...prev, { 
+        role: 'bot', 
+        content: data.reply || 'Sorry, I could not process that request.' 
+      }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setChatMessages(prev => [...prev, { 
+        role: 'bot', 
+        content: 'Sorry, I am having trouble connecting. Please try again.' 
+      }]);
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages]);
 
   const handleOrderComplete = (details) => {
     setOrderDetails(details);
@@ -1258,6 +1419,31 @@ export default function AlchemicalPharmacyUI() {
         onOrderClick={(order) => setSelectedOrder(order)}
         customerEmail={customerEmail}
       />
+
+      {/* Chatbot */}
+      {isChatOpen && (
+        <Chatbot
+          isOpen={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          messages={chatMessages}
+          onSendMessage={handleSendMessage}
+          input={chatInput}
+          setInput={setChatInput}
+          isLoading={isChatLoading}
+          chatEndRef={chatEndRef}
+        />
+      )}
+
+      {/* Floating chat button */}
+      {!isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 right-6 bg-accent-primary hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl z-50 transition-all duration-200 hover:scale-110"
+          aria-label="Open medicine chat"
+        >
+          <MessageCircle size={28} />
+        </button>
+      )}
     </>
   );
 }
