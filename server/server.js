@@ -1,15 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Initialize OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 // MySQL connection pool
 const pool = mysql.createPool({
@@ -463,8 +464,8 @@ app.post('/api/chatbot', async (req, res) => {
       `${m.name} - Category: ${m.category}, Price: ₹${m.price}, Dosage: ${m.dosage}, Manufacturer: ${m.manufacturer}`
     ).join('\n');
 
-    // Create prompt for Gemini
-    const prompt = `You are a helpful pharmacy assistant chatbot for Care Pharmacy. You can only answer questions about medicines, their prices, dosages, and general health advice.
+    // Create messages for OpenAI
+    const systemMessage = `You are a helpful pharmacy assistant chatbot for Care Pharmacy. You can only answer questions about medicines, their prices, dosages, and general health advice.
 
 Available medicines in our pharmacy:
 ${medicinesContext}
@@ -475,15 +476,62 @@ Rules:
 3. Be helpful, professional, and concise
 4. Use the medicine list above for accurate pricing
 5. If a medicine is not in our list, suggest similar alternatives from the list
-6. Always remind users to consult a doctor for medical conditions
+6. Always remind users to consult a doctor for medical conditions`;
 
-User question: ${message}
+    let botReply;
 
-Provide a helpful response:`;
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: systemMessage },
+          { role: "user", content: message }
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const botReply = response.text();
+      botReply = completion.choices[0].message.content;
+    } catch (aiError) {
+      console.error('OpenAI API error:', aiError.message);
+      
+      // Fallback to simple pattern matching
+      const lowerMessage = message.toLowerCase();
+      const foundMedicine = medicinesList.find(m => 
+        lowerMessage.includes(m.name.toLowerCase()) || 
+        lowerMessage.includes(m.name.split(' ')[0].toLowerCase())
+      );
+
+      if (foundMedicine) {
+        botReply = `**${foundMedicine.name}** is available at our pharmacy!\n\n` +
+          `💊 **Category:** ${foundMedicine.category}\n` +
+          `💰 **Price:** ₹${foundMedicine.price}\n` +
+          `📋 **Dosage:** ${foundMedicine.dosage}\n` +
+          `🏭 **Manufacturer:** ${foundMedicine.manufacturer}\n` +
+          `📝 **Description:** ${foundMedicine.description}\n\n` +
+          `✅ Currently in stock: ${foundMedicine.stock} units\n\n` +
+          `⚕️ Please consult a doctor before taking any medication.`;
+      } else if (lowerMessage.includes('price') || lowerMessage.includes('cost')) {
+        botReply = `I can help you with medicine prices! Here are some popular medicines:\n\n` +
+          medicinesList.slice(0, 5).map(m => 
+            `• ${m.name} - ₹${m.price}`
+          ).join('\n') +
+          `\n\nPlease specify which medicine you'd like to know about.`;
+      } else if (lowerMessage.includes('hello') || lowerMessage.includes('hi')) {
+        botReply = `Hello! 👋 I'm your Care Pharmacy assistant. I can help you with:\n\n` +
+          `• Medicine prices and availability\n` +
+          `• Dosage information\n` +
+          `• Product details\n\n` +
+          `What medicine information would you like to know?`;
+      } else {
+        botReply = `I'm here to help with medicine-related queries! You can ask me about:\n\n` +
+          `📋 Medicine prices\n` +
+          `💊 Dosages and usage\n` +
+          `🏥 Medicine categories\n` +
+          `✅ Availability and stock\n\n` +
+          `We have ${medicinesList.length} medicines in stock. What would you like to know?`;
+      }
+    }
 
     res.json({ 
       reply: botReply,

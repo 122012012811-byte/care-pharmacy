@@ -2,4 +2,144 @@
 @tailwind components;
 @tailwind utilities;
 
-/* You can add any additional global styles here */
+/* Care Pharmacy Global Styles */
+:root {
+  --bg-primary: #111827;
+  --bg-secondary: #1F2937;
+  --bg-tertiary: #374151;
+  --text-primary: #F9FAFB;
+  --text-secondary: #D1D5DB;
+  --accent-primary: #3B82F6;
+  --accent-secondary: #10B981;
+  --accent-tertiary: #F59E0B;
+  --accent-glow: rgba(59, 130, 246, 0.5);
+  --border-color: #4B5563;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fly-to-cart {
+  0% { opacity: 1; transform: scale(1) translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: scale(0.1) translateY(-40px) rotate(360deg); }
+}
+
+.modal-enter {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.modal-exit {
+  animation: fadeOut 0.2s ease-out forwards;
+}
+
+.sidebar-enter {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.sidebar-exit {
+  animation: slideOutRight 0.25s ease-out forwards;
+}
+
+.card-enter {
+  animation: popIn 0.3s ease-out forwards;
+}
+
+.fly-item {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: 9999px;
+  animation: fly-to-cart 0.5s ease-out forwards;
+  will-change: transform, opacity;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-secondary);
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  will-change: transform, box-shadow;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+.glass {
+  background: rgba(31, 41, 55, 0.7);
+  backdrop-filter: saturate(180%) blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 var(--shadow-color);
+  transition: all 0.3s ease-out;
+  will-change: transform, box-shadow;
+}
+
+.glass:hover {
+  box-shadow: 0 12px 40px 0 var(--shadow-color);
+  transform: translateY(-1px);
+}

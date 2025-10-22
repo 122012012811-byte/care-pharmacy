@@ -13,130 +13,7 @@ const mockMedicines = [
   { id: 6, name: "Metformin 500mg", category: "Diabetes Care", description: "Blood sugar control for type 2 diabetes", price: 45.00, dosage: "500mg per tablet", manufacturer: "Sun Pharma", image_url: "https://images.unsplash.com/photo-1550572017-4393b69d75e0?w=500&h=500&fit=crop", stock: 40 },
 ];
 
-// --- GLOBAL STYLES ---
-const GlobalStyles = () => (
-  <style jsx global>{`
-    :root {
-      --bg-primary: #111827;
-      --bg-secondary: #1F2937;
-      --bg-tertiary: #374151;
-      --text-primary: #F9FAFB;
-      --text-secondary: #D1D5DB;
-      --accent-primary: #3B82F6;
-      --accent-secondary: #10B981;
-      --accent-tertiary: #F59E0B;
-      --accent-glow: rgba(59, 130, 246, 0.5);
-      --border-color: #4B5563;
-      --shadow-color: rgba(0, 0, 0, 0.5);
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeOut {
-      from { opacity: 1; transform: translateY(0); }
-      to { opacity: 0; transform: translateY(8px); }
-    }
-    @keyframes slideInRight {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-    @keyframes slideOutRight {
-      from { transform: translateX(0); opacity: 1; }
-      to { transform: translateX(100%); opacity: 0; }
-    }
-    @keyframes popIn {
-      0% { opacity: 0; transform: scale(0.95); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-    @keyframes fly-to-cart {
-      0% { opacity: 1; transform: scale(1) translateY(0) rotate(0deg); }
-      100% { opacity: 0; transform: scale(0.1) translateY(-40px) rotate(360deg); }
-    }
-    .modal-enter {
-      animation: fadeIn 0.25s ease-out forwards;
-    }
-    .modal-exit {
-      animation: fadeOut 0.2s ease-out forwards;
-    }
-    .sidebar-enter {
-      animation: slideInRight 0.3s ease-out forwards;
-    }
-    .sidebar-exit {
-      animation: slideOutRight 0.25s ease-out forwards;
-    }
-    .card-enter {
-      animation: popIn 0.3s ease-out forwards;
-    }
-    .fly-item {
-      position: fixed;
-      z-index: 9999;
-      pointer-events: none;
-      border-radius: 9999px;
-      animation: fly-to-cart 0.5s ease-out forwards;
-      will-change: transform, opacity;
-    }
-    body {
-      background-color: var(--bg-primary);
-      color: var(--text-primary);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      scroll-behavior: smooth;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    * {
-      scroll-behavior: smooth;
-    }
-    html {
-      scroll-behavior: smooth;
-    }
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: var(--accent-primary);
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-secondary);
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--accent-secondary);
-    }
-    button {
-      cursor: pointer;
-      transition: all 0.2s ease-out;
-      will-change: transform, box-shadow;
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-    button:active {
-      transform: translateY(0);
-    }
-    .glass {
-      background: rgba(31, 41, 55, 0.7);
-      backdrop-filter: saturate(180%) blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px 0 var(--shadow-color);
-      transition: all 0.3s ease-out;
-      will-change: transform, box-shadow;
-    }
-    .glass:hover {
-      box-shadow: 0 12px 40px 0 var(--shadow-color);
-      transform: translateY(-1px);
-    }
-  `}</style>
-);
+// Global styles are now in index.css - removed problematic jsx style tag
 
 // --- MEDICINE CARD COMPONENT ---
 const MedicineCard = React.memo(({ medicine, onAddToCart }) => {
@@ -846,37 +723,35 @@ const Chatbot = ({ isOpen, onClose, messages, onSendMessage, input, setInput, is
         </button>
       )}
 
-      {/* Chat window */}
-      <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-bg-secondary glass rounded-lg shadow-2xl z-50 flex flex-col border border-border-color modal-enter">
+      {/* Chat window - Compact size */}
+      <div className="fixed bottom-6 right-6 w-80 h-[450px] bg-bg-secondary glass rounded-lg shadow-2xl z-50 flex flex-col border border-border-color modal-enter">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border-color bg-gradient-to-r from-accent-primary to-blue-700">
+        <div className="flex items-center justify-between p-3 border-b border-border-color bg-gradient-to-r from-accent-primary to-blue-700">
           <div className="flex items-center space-x-2">
-            <MessageCircle size={24} className="text-white" />
+            <MessageCircle size={20} className="text-white" />
             <div>
-              <h3 className="font-bold text-white">Medicine Assistant</h3>
-              <p className="text-xs text-blue-100">Ask about medicines & prices</p>
+              <h3 className="font-bold text-white text-sm">Medicine Bot</h3>
+              <p className="text-xs text-blue-100">Ask about medicines</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white hover:bg-opacity-20 rounded transition-colors"
+            className="p-1.5 hover:bg-white hover:bg-opacity-20 rounded transition-colors"
           >
-            <X size={20} className="text-white" />
+            <X size={18} className="text-white" />
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-3 space-y-3">
           {messages.length === 0 ? (
-            <div className="text-center text-text-secondary mt-20">
-              <MessageCircle size={48} className="mx-auto mb-4 text-accent-primary" />
-              <p className="font-semibold text-text-primary mb-2">Welcome to Care Pharmacy!</p>
-              <p className="text-sm">Ask me about medicine prices, dosages, or health advice.</p>
-              <div className="mt-4 space-y-2 text-xs">
-                <p className="text-left">Try asking:</p>
-                <p className="text-left text-accent-primary">• "What is the price of Dolo 650?"</p>
-                <p className="text-left text-accent-primary">• "Do you have antibiotics?"</p>
-                <p className="text-left text-accent-primary">• "Suggest medicine for fever"</p>
+            <div className="text-center text-text-secondary mt-12">
+              <MessageCircle size={36} className="mx-auto mb-3 text-accent-primary" />
+              <p className="font-semibold text-text-primary mb-1 text-sm">Welcome!</p>
+              <p className="text-xs">Ask about medicine prices & dosages.</p>
+              <div className="mt-3 space-y-1 text-xs">
+                <p className="text-left text-accent-primary">• "Dolo 650 price?"</p>
+                <p className="text-left text-accent-primary">• "Antibiotics available?"</p>
               </div>
             </div>
           ) : (
@@ -886,24 +761,24 @@ const Chatbot = ({ isOpen, onClose, messages, onSendMessage, input, setInput, is
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[85%] p-2 rounded-lg ${
                     msg.role === 'user'
                       ? 'bg-accent-primary text-white'
                       : 'bg-bg-tertiary text-text-primary border border-border-color'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  <p className="text-xs whitespace-pre-wrap">{msg.content}</p>
                 </div>
               </div>
             ))
           )}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-bg-tertiary p-3 rounded-lg border border-border-color">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="bg-bg-tertiary p-2 rounded-lg border border-border-color">
+                <div className="flex space-x-1.5">
+                  <div className="w-1.5 h-1.5 bg-accent-primary rounded-full animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-1.5 h-1.5 bg-accent-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
               </div>
             </div>
@@ -912,7 +787,7 @@ const Chatbot = ({ isOpen, onClose, messages, onSendMessage, input, setInput, is
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-border-color">
+        <div className="p-3 border-t border-border-color">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -925,15 +800,15 @@ const Chatbot = ({ isOpen, onClose, messages, onSendMessage, input, setInput, is
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about medicines..."
-              className="flex-1 px-4 py-2 bg-bg-tertiary border border-border-color rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              className="flex-1 px-3 py-1.5 text-sm bg-bg-tertiary border border-border-color rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="bg-accent-primary hover:bg-blue-700 text-white p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-accent-primary hover:bg-blue-700 text-white p-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send size={20} />
+              <Send size={18} />
             </button>
           </form>
         </div>
@@ -1199,7 +1074,6 @@ export default function AlchemicalPharmacyUI() {
 
   return (
     <>
-      <GlobalStyles />
       <header className="bg-bg-secondary text-text-primary shadow-lg">
         <div className="bg-bg-tertiary py-2 px-4 text-sm flex justify-between">
           <span>🏥 Your Health, Our Priority | Free Delivery on Orders Above ₹500</span>
@@ -1438,10 +1312,10 @@ export default function AlchemicalPharmacyUI() {
       {!isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 bg-accent-primary hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl z-50 transition-all duration-200 hover:scale-110"
+          className="fixed bottom-6 right-6 bg-accent-primary hover:bg-blue-700 text-white p-3 rounded-full shadow-2xl z-50 transition-all duration-200 hover:scale-110"
           aria-label="Open medicine chat"
         >
-          <MessageCircle size={28} />
+          <MessageCircle size={24} />
         </button>
       )}
     </>
